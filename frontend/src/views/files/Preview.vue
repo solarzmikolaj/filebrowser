@@ -144,6 +144,15 @@
             class="docx-content"
             v-html="docxHtml"
           ></article>
+          <iframe
+            v-else-if="officeEmbedUrl"
+            class="document-frame"
+            :src="officeEmbedUrl"
+            frameborder="0"
+            loading="lazy"
+            allowfullscreen
+            :title="name"
+          ></iframe>
           <div v-else class="info">
             <div class="title">
               <i class="material-icons">description</i>
@@ -165,6 +174,15 @@
             </div>
           </div>
         </div>
+        <iframe
+          v-else-if="isOfficeDocument && officeEmbedUrl"
+          class="document-frame"
+          :src="officeEmbedUrl"
+          frameborder="0"
+          loading="lazy"
+          allowfullscreen
+          :title="name"
+        ></iframe>
         <div v-else-if="isOfficeDocument" class="info">
           <div class="title">
             <i class="material-icons">description</i>
@@ -380,10 +398,14 @@ const isOfficeDocument = computed(() =>
   officeExtensions.includes(fileStore.req?.extension.toLowerCase() ?? "")
 );
 const isDocx = computed(
-  () =>
-    fileStore.req?.extension.toLowerCase() === ".docx" ||
-    fileStore.req?.extension.toLowerCase() === ".doc"
+  () => fileStore.req?.extension.toLowerCase() === ".docx"
 );
+const officeEmbedUrl = computed(() => {
+  if (!directUrl.value) {
+    return "";
+  }
+  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(directUrl.value)}`;
+});
 const canOpenDirect = computed(
   () =>
     ["image", "audio", "video"].includes(fileStore.req?.type || "") ||
