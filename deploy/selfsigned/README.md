@@ -13,6 +13,7 @@ SSL_CN=your.domain.or.ip docker compose -f docker-compose.selfsigned.yml up -d -
 ```
 
 The certificate is generated automatically on first run and stored in the `filebrowser_tls` Docker volume.
+Default validity is 9125 days (~25 years). Override with `SSL_DAYS`.
 
 ## Notes
 

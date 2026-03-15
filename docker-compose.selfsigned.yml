@@ -5,19 +5,19 @@ services:
     restart: "no"
     environment:
       SSL_CN: ${SSL_CN:-localhost}
-      SSL_DAYS: ${SSL_DAYS:-825}
+      SSL_DAYS: ${SSL_DAYS:-9125}
     volumes:
       - filebrowser_tls:/tls
     command: >-
       sh -c 'apk add --no-cache openssl >/dev/null && if [ ! -f /tls/tls.crt ] || [ ! -f /tls/tls.key ]; then
-      CN="${SSL_CN:-localhost}";
-      DAYS="${SSL_DAYS:-825}";
+      CN="$${SSL_CN:-localhost}";
+      DAYS="$${SSL_DAYS:-9125}";
       openssl req -x509 -nodes -newkey rsa:2048 -sha256
       -keyout /tls/tls.key
       -out /tls/tls.crt
-      -days "$DAYS"
-      -subj "/CN=$CN"
-      -addext "subjectAltName=DNS:$CN,DNS:localhost,IP:127.0.0.1";
+      -days "$$DAYS"
+      -subj "/CN=$$CN"
+      -addext "subjectAltName=DNS:$$CN,DNS:localhost,IP:127.0.0.1";
       fi'
 
   filebrowser:
