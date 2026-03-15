@@ -520,6 +520,26 @@ main {
   background: #0b0f19;
 }
 
+#previewer .pdf-preview {
+  height: 100%;
+  padding-top: 4em;
+  overflow: auto;
+}
+
+#previewer .pdf-pages {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1rem 0 3rem;
+}
+
+#previewer .pdf-pages img {
+  width: 100%;
+  display: block;
+  margin: 0 auto 0.75rem;
+  background: #fff;
+  border-radius: var(--radiusMd);
+}
+
 #previewer .docx-preview {
   height: 100%;
   padding-top: 4em;

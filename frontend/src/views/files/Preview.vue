@@ -122,15 +122,43 @@
           :options="videoOptions"
         >
         </VideoPlayer>
-        <iframe
-          v-else-if="isPdf"
-          class="document-frame"
-          :src="previewUrl"
-          frameborder="0"
-          loading="lazy"
-          allowfullscreen
-          :title="name"
-        ></iframe>
+        <div v-else-if="isPdf" class="pdf-preview">
+          <div class="loading delayed" v-if="pdfLoading">
+            <div class="spinner">
+              <div class="bounce1"></div>
+              <div class="bounce2"></div>
+              <div class="bounce3"></div>
+            </div>
+          </div>
+          <div v-else-if="pdfPages.length > 0" class="pdf-pages">
+            <img
+              v-for="(page, index) in pdfPages"
+              :key="`pdf-page-${index}`"
+              :src="page"
+              :alt="`${name} - page ${index + 1}`"
+            />
+          </div>
+          <div v-else class="info">
+            <div class="title">
+              <i class="material-icons">picture_as_pdf</i>
+              {{ pdfError || $t("files.noPreview") }}
+            </div>
+            <div>
+              <a target="_blank" :href="downloadUrl" class="button button--flat">
+                <div>
+                  <i class="material-icons">file_download</i
+                  >{{ $t("buttons.download") }}
+                </div>
+              </a>
+              <a target="_blank" :href="directUrl" class="button button--flat">
+                <div>
+                  <i class="material-icons">open_in_new</i
+                  >{{ t("buttons.openDirect") }}
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
         <div v-else-if="isDocx" class="docx-preview">
           <div class="loading delayed" v-if="docxLoading">
             <div class="spinner">
@@ -269,6 +297,8 @@ import url from "@/utils/url";
 import { throttle } from "lodash-es";
 import DOMPurify from "dompurify";
 import mammoth from "mammoth/mammoth.browser";
+import { GlobalWorkerOptions, getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
@@ -344,6 +374,9 @@ const previousRaw = ref<string>("");
 const nextRaw = ref<string>("");
 const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
+const pdfPages = ref<string[]>([]);
+const pdfLoading = ref<boolean>(false);
+const pdfError = ref<string>("");
 const docxHtml = ref<string>("");
 const docxLoading = ref<boolean>(false);
 const docxError = ref<string>("");
@@ -360,6 +393,7 @@ const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const hasPrevious = computed(() => previousLink.value !== "");
 
@@ -507,6 +541,9 @@ const updatePreview = async () => {
   docxHtml.value = "";
   docxError.value = "";
   docxLoading.value = false;
+  pdfPages.value = [];
+  pdfError.value = "";
+  pdfLoading.value = false;
 
   // Load CSV content if it's a CSV file
   if (isCsv.value && fileStore.req) {
@@ -540,6 +577,48 @@ const updatePreview = async () => {
       docxError.value = t("files.noPreview");
     } finally {
       docxLoading.value = false;
+    }
+  }
+
+  if (isPdf.value && fileStore.req) {
+    pdfLoading.value = true;
+    try {
+      const response = await fetch(previewUrl.value, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(response.statusText || "Unable to preview PDF");
+      }
+
+      const bytes = await response.arrayBuffer();
+      const pdfDocument = await getDocument({ data: bytes }).promise;
+      const maxPages = 20;
+      const pagesToRender = Math.min(pdfDocument.numPages, maxPages);
+      const renderedPages: string[] = [];
+      const scale = window.innerWidth <= 736 ? 1.2 : 1.5;
+
+      for (let pageNumber = 1; pageNumber <= pagesToRender; pageNumber++) {
+        const page = await pdfDocument.getPage(pageNumber);
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) {
+          continue;
+        }
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: context, viewport }).promise;
+        renderedPages.push(canvas.toDataURL("image/webp", 0.92));
+      }
+
+      pdfPages.value = renderedPages;
+      if (renderedPages.length === 0) {
+        pdfError.value = t("files.noPreview");
+      }
+    } catch {
+      pdfError.value = t("files.noPreview");
+    } finally {
+      pdfLoading.value = false;
     }
   }
 
