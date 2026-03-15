@@ -23,7 +23,7 @@ services:
   filebrowser:
     build:
       context: .
-      dockerfile: Dockerfile.selfhost
+      dockerfile: Dockerfile
     image: my-filebrowser:latest
     container_name: filebrowser
     restart: unless-stopped
