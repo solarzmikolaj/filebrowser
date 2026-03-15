@@ -461,3 +461,67 @@ html[dir="rtl"] .card.floating .card-content .file-list {
   direction: ltr;
   text-align: left;
 }
+
+/* Modern UI refresh */
+body {
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 35%),
+    var(--background);
+}
+
+header {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadowSoft);
+}
+
+nav {
+  margin: 0.8em 0 0 0.8em;
+  border-radius: var(--radiusLg);
+  overflow: hidden;
+  border: 1px solid var(--borderPrimary);
+  background: var(--surfacePrimary);
+  box-shadow: var(--shadowSoft);
+  height: calc(100% - 5.2em);
+}
+
+main {
+  margin-top: 0.5em;
+}
+
+.breadcrumbs {
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radiusMd);
+  padding: 0 0.8em;
+}
+
+#listing.list .item {
+  border-radius: var(--radiusMd);
+  margin-bottom: 0.55em;
+  border-top: 1px solid var(--borderPrimary);
+  box-shadow: var(--shadowSoft);
+}
+
+#listing.mosaic .item {
+  border-radius: var(--radiusLg);
+  box-shadow: var(--shadowSoft);
+}
+
+#listing .item:hover {
+  transform: translateY(-1px);
+  transition: 0.15s ease transform;
+}
+
+#previewer .document-frame {
+  width: 100%;
+  height: 100%;
+  padding-top: 4em;
+  border: 0;
+  background: #0b0f19;
+}
+
+#previewer .pdf {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

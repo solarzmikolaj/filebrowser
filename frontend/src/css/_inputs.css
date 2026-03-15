@@ -2,8 +2,8 @@
   background: var(--surfacePrimary);
   color: var(--textSecondary);
   border: 1px solid var(--borderPrimary);
-  border-radius: 0.1em;
-  padding: 0.5em 1em;
+  border-radius: var(--radiusMd);
+  padding: 0.55em 0.95em;
   transition: 0.2s ease all;
   margin: 0;
 }
@@ -11,6 +11,7 @@
 .input:hover,
 .input:focus {
   border-color: var(--borderSecondary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .input--block {

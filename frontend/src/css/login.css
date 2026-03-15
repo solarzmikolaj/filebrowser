@@ -1,5 +1,7 @@
 #login {
-  background: var(--surfacePrimary);
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 40%),
+    var(--background);
   position: fixed;
   top: 0;
   left: 0;
@@ -25,8 +27,13 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 16em;
+  max-width: 22em;
   width: 90%;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radiusLg);
+  box-shadow: var(--shadowStrong);
+  padding: 1.2em;
 }
 
 #login.recaptcha form {
@@ -43,6 +50,7 @@
   padding: 0.5em;
   text-align: center;
   animation: 0.2s opac forwards;
+  border-radius: var(--radiusMd);
 }
 
 #login .logout-message {
@@ -52,6 +60,7 @@
   text-align: center;
   animation: 0.2s opac forwards;
   text-transform: none;
+  border-radius: var(--radiusMd);
 }
 
 @keyframes opac {

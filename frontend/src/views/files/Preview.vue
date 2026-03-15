@@ -125,7 +125,15 @@
           :options="videoOptions"
         >
         </VideoPlayer>
-        <object v-else-if="isPdf" class="pdf" :data="previewUrl"></object>
+        <iframe
+          v-else-if="isPdf || canPreviewOffice"
+          class="document-frame"
+          :src="documentPreviewUrl"
+          frameborder="0"
+          loading="lazy"
+          allowfullscreen
+          :title="name"
+        ></iframe>
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
@@ -180,7 +188,7 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
+import { useMediaQuery, useStorage } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -310,6 +318,29 @@ const previewUrl = computed(() => {
 const isPdf = computed(() => fileStore.req?.extension.toLowerCase() == ".pdf");
 const isEpub = computed(
   () => fileStore.req?.extension.toLowerCase() == ".epub"
+);
+const officeExtensions = [".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"];
+const isOfficeDocument = computed(() =>
+  officeExtensions.includes(fileStore.req?.extension.toLowerCase() ?? "")
+);
+const isTouchDevice = useMediaQuery("(hover: none), (pointer: coarse)");
+const isTabletViewport = useMediaQuery("(max-width: 1024px)");
+const isMobileOrTablet = computed(
+  () => isTouchDevice.value || isTabletViewport.value
+);
+const canPreviewOffice = computed(
+  () => isOfficeDocument.value && isMobileOrTablet.value
+);
+const officePreviewUrl = computed(() => {
+  if (!fileStore.req) {
+    return "";
+  }
+
+  const rawUrl = api.getDownloadURL(fileStore.req, true);
+  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(rawUrl)}`;
+});
+const documentPreviewUrl = computed(() =>
+  isPdf.value ? previewUrl.value : officePreviewUrl.value
 );
 const isCsv = computed(
   () =>

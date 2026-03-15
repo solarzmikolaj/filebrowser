@@ -12,7 +12,7 @@
 
 @media (max-width: 736px) {
   body {
-    padding-bottom: 5em;
+    padding-bottom: calc(5em + env(safe-area-inset-bottom));
   }
   #listing.list .item .size {
     display: none;
@@ -30,11 +30,12 @@
   }
   #dropdown {
     position: fixed;
-    top: 1em;
-    right: 1em;
+    top: 0.75em;
+    right: 0.75em;
     display: block;
     background: var(--surfaceSecondary);
-    box-shadow: 0 0 5px var(--borderPrimary);
+    box-shadow: var(--shadowStrong);
+    border-radius: var(--radiusMd);
     transform: scale(0);
     transition: 0.1s ease-in-out transform;
     transform-origin: top right;
@@ -68,15 +69,14 @@
   }
   #file-selection {
     position: fixed;
-    bottom: 1em;
+    bottom: calc(1em + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
     background: var(--surfaceSecondary);
-    box-shadow:
-      rgba(0, 0, 0, 0.06) 0px 1px 3px,
-      rgba(0, 0, 0, 0.12) 0px 1px 2px;
+    box-shadow: var(--shadowStrong);
+    border-radius: var(--radiusLg);
     width: 95%;
     max-width: 20em;
     z-index: 1;
@@ -99,15 +99,17 @@
     z-index: 99999;
     background: var(--surfaceSecondary);
     height: 100%;
-    width: 16em;
-    box-shadow: 0 0 5px var(--borderPrimary);
+    width: 18em;
+    box-shadow: var(--shadowStrong);
     transition: 0.1s ease left;
-    left: -17em;
+    left: -19em;
+    margin: 0;
+    border-radius: 0;
   }
 
   html[dir="rtl"] nav {
     left: unset;
-    right: -17em;
+    right: -19em;
   }
   nav.active {
     left: 0;
@@ -150,8 +152,20 @@
   }
 
   main {
-    margin: 0 1em;
+    margin: 0.4em 0.7em;
     width: calc(100% - 2em);
+  }
+  #listing.list .item {
+    padding: 0.8em;
+  }
+  #previewer .document-frame,
+  #previewer .pdf {
+    padding-top: 4.5em;
+  }
+  #previewer > button {
+    top: auto;
+    bottom: calc(1em + env(safe-area-inset-bottom));
+    transform: none;
   }
   #search {
     display: none;
