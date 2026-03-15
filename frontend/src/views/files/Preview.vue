@@ -1,8 +1,8 @@
 <template>
   <div
     id="previewer"
-    @touchmove.prevent.stop
-    @wheel.prevent.stop
+    @touchmove="handleTouchMove"
+    @wheel="handleWheel"
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
@@ -48,10 +48,7 @@
         />
         <action
           :disabled="layoutStore.loading"
-          v-if="
-            ['image', 'audio', 'video'].includes(fileStore.req?.type || '') &&
-            authStore.user?.perm.download
-          "
+          v-if="canOpenDirect && authStore.user?.perm.download"
           icon="open_in_new"
           :label="t('buttons.openDirect')"
           @action="openDirect"
@@ -126,14 +123,34 @@
         >
         </VideoPlayer>
         <iframe
-          v-else-if="isPdf || canPreviewOffice"
+          v-else-if="isPdf"
           class="document-frame"
-          :src="documentPreviewUrl"
+          :src="previewUrl"
           frameborder="0"
           loading="lazy"
           allowfullscreen
           :title="name"
         ></iframe>
+        <div v-else-if="isOfficeDocument" class="info">
+          <div class="title">
+            <i class="material-icons">description</i>
+            {{ $t("files.noPreview") }}
+          </div>
+          <div>
+            <a target="_blank" :href="downloadUrl" class="button button--flat">
+              <div>
+                <i class="material-icons">file_download</i
+                >{{ $t("buttons.download") }}
+              </div>
+            </a>
+            <a target="_blank" :href="directUrl" class="button button--flat">
+              <div>
+                <i class="material-icons">open_in_new</i
+                >{{ t("buttons.openDirect") }}
+              </div>
+            </a>
+          </div>
+        </div>
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
@@ -188,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMediaQuery, useStorage } from "@vueuse/core";
+import { useStorage } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -323,24 +340,11 @@ const officeExtensions = [".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"];
 const isOfficeDocument = computed(() =>
   officeExtensions.includes(fileStore.req?.extension.toLowerCase() ?? "")
 );
-const isTouchDevice = useMediaQuery("(hover: none), (pointer: coarse)");
-const isTabletViewport = useMediaQuery("(max-width: 1024px)");
-const isMobileOrTablet = computed(
-  () => isTouchDevice.value || isTabletViewport.value
-);
-const canPreviewOffice = computed(
-  () => isOfficeDocument.value && isMobileOrTablet.value
-);
-const officePreviewUrl = computed(() => {
-  if (!fileStore.req) {
-    return "";
-  }
-
-  const rawUrl = api.getDownloadURL(fileStore.req, true);
-  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(rawUrl)}`;
-});
-const documentPreviewUrl = computed(() =>
-  isPdf.value ? previewUrl.value : officePreviewUrl.value
+const canOpenDirect = computed(
+  () =>
+    ["image", "audio", "video"].includes(fileStore.req?.type || "") ||
+    isPdf.value ||
+    isOfficeDocument.value
 );
 const isCsv = computed(
   () =>
@@ -523,5 +527,19 @@ const openDirect = () => window.open(directUrl.value);
 
 const editAsText = () => {
   router.push({ path: route.path, query: { edit: "true" } });
+};
+
+const handleTouchMove = (event: TouchEvent) => {
+  if (!isPdf.value && !isOfficeDocument.value) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+};
+
+const handleWheel = (event: WheelEvent) => {
+  if (!isPdf.value && !isOfficeDocument.value) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
 };
 </script>
