@@ -159,6 +159,7 @@
     padding: 0.8em;
   }
   #previewer .document-frame,
+  #previewer .docx-preview,
   #previewer .pdf {
     padding-top: 4.5em;
   }

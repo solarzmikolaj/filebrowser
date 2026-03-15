@@ -131,6 +131,40 @@
           allowfullscreen
           :title="name"
         ></iframe>
+        <div v-else-if="isDocx" class="docx-preview">
+          <div class="loading delayed" v-if="docxLoading">
+            <div class="spinner">
+              <div class="bounce1"></div>
+              <div class="bounce2"></div>
+              <div class="bounce3"></div>
+            </div>
+          </div>
+          <article
+            v-else-if="docxHtml"
+            class="docx-content"
+            v-html="docxHtml"
+          ></article>
+          <div v-else class="info">
+            <div class="title">
+              <i class="material-icons">description</i>
+              {{ docxError || $t("files.noPreview") }}
+            </div>
+            <div>
+              <a target="_blank" :href="downloadUrl" class="button button--flat">
+                <div>
+                  <i class="material-icons">file_download</i
+                  >{{ $t("buttons.download") }}
+                </div>
+              </a>
+              <a target="_blank" :href="directUrl" class="button button--flat">
+                <div>
+                  <i class="material-icons">open_in_new</i
+                  >{{ t("buttons.openDirect") }}
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
         <div v-else-if="isOfficeDocument" class="info">
           <div class="title">
             <i class="material-icons">description</i>
@@ -215,6 +249,8 @@ import { createURL } from "@/api/utils";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import { throttle } from "lodash-es";
+import DOMPurify from "dompurify";
+import mammoth from "mammoth/mammoth.browser";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
@@ -290,6 +326,9 @@ const previousRaw = ref<string>("");
 const nextRaw = ref<string>("");
 const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
+const docxHtml = ref<string>("");
+const docxLoading = ref<boolean>(false);
+const docxError = ref<string>("");
 
 const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
 
@@ -339,6 +378,11 @@ const isEpub = computed(
 const officeExtensions = [".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"];
 const isOfficeDocument = computed(() =>
   officeExtensions.includes(fileStore.req?.extension.toLowerCase() ?? "")
+);
+const isDocx = computed(
+  () =>
+    fileStore.req?.extension.toLowerCase() === ".docx" ||
+    fileStore.req?.extension.toLowerCase() === ".doc"
 );
 const canOpenDirect = computed(
   () =>
@@ -438,6 +482,10 @@ const updatePreview = async () => {
   const dirs = route.fullPath.split("/");
   name.value = decodeURIComponent(dirs[dirs.length - 1]);
 
+  docxHtml.value = "";
+  docxError.value = "";
+  docxLoading.value = false;
+
   // Load CSV content if it's a CSV file
   if (isCsv.value && fileStore.req) {
     csvContent.value = "";
@@ -451,6 +499,25 @@ const updatePreview = async () => {
       } else {
         csvContent.value = fileStore.req.content ?? "";
       }
+    }
+  }
+
+  if (isDocx.value && fileStore.req) {
+    docxLoading.value = true;
+    try {
+      const response = await fetch(previewUrl.value, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(response.statusText || "Unable to preview DOCX");
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      docxHtml.value = DOMPurify.sanitize(result.value);
+    } catch {
+      docxError.value = t("files.noPreview");
+    } finally {
+      docxLoading.value = false;
     }
   }
 
